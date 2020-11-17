@@ -1,0 +1,47 @@
+version: "3"
+
+services: 
+  web:
+    build: ./docker_django
+    volumes: 
+      - ./docker_django:/var/www/html/mysite1
+    ports: 
+      - 8000:8000
+    expose:  
+      - "8000"
+    depends_on: 
+      - db
+    links: 
+      - "db:db"
+    environment: 
+      - DEBUG=True
+    restart: always
+  
+  db:
+    image: mysql:5.7
+    environment:
+       - MYSQL_ROOT_PASSWORD=123456
+       - MYSQL_DATABASE=myproject
+       - MYSQL_USER=dbuser
+       - MYSQL_PASSWORD=password
+    volumes:
+       - ./volume_mysql:/var/lib/mysql:rw
+    ports:
+       - "3306:3306"
+    restart: always
+
+  nginx:
+    build: ./docker_others/nginx
+    ports: 
+      - 80:80
+    expose:
+      - "80"
+    volumes:
+      - ./docker_django/static:/usr/share/nginx/html/static
+      - ./docker_django/media:/usr/share/nginx/html/media
+      - ./docker_others/nginx/ssl:/usr/share/nginx/ssl
+    links: 
+      - "web:web"
+    depends_on:
+      - web
+    restart: always
